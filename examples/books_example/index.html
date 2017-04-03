@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ORMizer Examples - Books</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script type="text/javascript" src="lib/jquery.min.js"></script>
+        <script type="text/javascript" src="books.js"></script>
+    </head>
+    <body>
+        <h1>Books - ORMizer example</h1>
+        <div>
+            <div>
+                <h2>Registered Books</h2>
+                <div id="bookList"></div>
+            </div>
+            <div>
+                <h2>New Book</h2>
+                <form action="books.php" method="post">
+                    <input type="text" name="title" placeholder="Title">
+                    <input type="text" name="author" placeholder="Author">
+                    <input type="text" name="year" placeholder="Year">
+                    <input type="submit" name="submit">
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
