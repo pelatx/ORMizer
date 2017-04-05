@@ -13,12 +13,12 @@ $(document).ready(function () {
     function getBookList() {
         $.getJSON("books.php")
             .done(function (bookList) {
-                if ($.isEmptyObject(bookList)) {
-                    $("#bookList").append("No Books in the Database");
-                } else {
-                    printBooks(bookList);
-                }
-            });
+            if ($.isEmptyObject(bookList)) {
+                $("#bookList").append("No Books in the Database");
+            } else {
+                printBooks(bookList);
+            }
+        });
     }
 
     getBookList();

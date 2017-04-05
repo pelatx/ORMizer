@@ -23,14 +23,14 @@ class Book {
     public function ormize() {
         $this->ormizedBook = ORMizer::persist($this);
         // Let's configure how type conversion will be
-		if(!$this->ormizedBook->existsTable()) {
-			$this->ormizedBook
-				->setCasting('title', 'varchar', 255)
-				->setCasting('author', 'varchar', 50)
-				->setCasting('year', 'int', 4);
+        if(!$this->ormizedBook->existsTable()) {
+            $this->ormizedBook
+                ->setCasting('title', 'varchar', 255)
+                ->setCasting('author', 'varchar', 50)
+                ->setCasting('year', 'int', 4);
             // Create an empty table reflecting the book object
-			$this->ormizedBook->createTable();
-		}
+            $this->ormizedBook->createTable();
+        }
         return $this->ormizedBook;
     }
 }
