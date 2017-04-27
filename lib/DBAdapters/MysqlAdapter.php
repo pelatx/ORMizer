@@ -4,7 +4,7 @@ namespace ORMizer;
 
 class MysqlAdapter extends BaseAdapter {
 
-    //Correspondencia de tipos php-relacional en MySQL
+    // Type correspondence php-MySQL.
     public $type_mapping = array(
         'char'		=> self::STRING,
         'varchar'	=> self::STRING,
@@ -25,17 +25,21 @@ class MysqlAdapter extends BaseAdapter {
         'dec'		=> self::DECIMAL
     );
 
-    //Guarda las propiedades en una fila/registro nueva en la tabla
+    /**
+     * Saves the object properties in a new row/record in the table.
+     * @param string $table       Table name in which the new row will be inserted.
+     * @param array  $props_array Array containing field-value pairs that correspond to object properties.
+     */
     public function insertRow($table, $props_array) {
-        //Dividimos el array asociativo en dos arrays simples:
-        //uno con las propiedades y el otro con sus valores
+        // We divide the associative array into two simple arrays:
+        // one with properties and the other with its values.
         foreach($props_array as $prop=>$value) {
             $properties[] = $prop;
-            if(is_array($value)) //si algun valor es un array, lo convertimos a json.
+            if(is_array($value)) // If any value is an array, we convert it to json.
                 $value = $this->_json_encode($value);
             $values[] = $value;
         }
-        //Preparamos la query sql
+        // We prepare the query sql.
         $num_fields = count($props_array);
         $sql = 'INSERT INTO '. $table. '(';
         for($i=0;$i<$num_fields; $i++) {
@@ -56,6 +60,11 @@ class MysqlAdapter extends BaseAdapter {
         $this->db_link->query($sql, $values);
     }
 
+    /**
+     * Updates the object properties of a row/record.
+     * @param string $table       Table name that contains the record.
+     * @param array  $props_array Array containing field-value pairs that correspond to object properties.
+     */
     public function updateRow($table, $props_array) {
         $sql = 'UPDATE '. $table. ' SET ';
         foreach($props_array as $prop=>$value) {
@@ -72,6 +81,13 @@ class MysqlAdapter extends BaseAdapter {
         $this->db_link->query($sql, $values);
     }
 
+    /**
+     * Gets a row from the database.
+     * @param  string    $table  Table name that contains the record.
+     * @param  string    $column Column/field used to select the row.
+     * @param  undefined $value  The value sought to select the row.
+     * @return array     Associative array containing fields => values. Or false if nothing.
+     */
     public function getRow($table, $column, $value) {
         $sql = 'SELECT * FROM '. $table. ' WHERE '. $column. '=? LIMIT 1';
         $this->db_link->query($sql, array($value));
@@ -81,12 +97,21 @@ class MysqlAdapter extends BaseAdapter {
         return $rows_array[0];
     }
 
+    /**
+     * Removes a row from its ormizer id.
+     * @param string $table      Table name that contains the record.
+     * @param string $ormizer_id The ormizer id to find.
+     */
     public function deleteRow($table, $ormizer_id) {
         $sql = 'DELETE FROM '. $table. ' WHERE ormizer_id=? LIMIT 1';
         $this->db_link->query($sql, [$ormizer_id]);
     }
 
-    //Retorna un array con todas las filas/registros de la tabla
+    /**
+     * Returns an array with all rows/records in a table.
+     * @param  string  $table Table name to be retrieved.
+     * @return array Array of rows (arrays) in the table. Or false if nothing.
+     */
     public function getAll($table) {
         $sql = 'SELECT * FROM '. $table;
         $this->db_link->query($sql);
@@ -97,6 +122,11 @@ class MysqlAdapter extends BaseAdapter {
     }
 
     //Comprueba si existe una tabla
+    /**
+     * Checks if a table exists.
+     * @param  string  $table_name Table name to check.
+     * @return boolean True if table exists.
+     */
     public function existsTable($table_name) {
         $sql = "SHOW TABLES LIKE '". $table_name. "'";
         $this->db_link->query($sql);
@@ -105,7 +135,11 @@ class MysqlAdapter extends BaseAdapter {
         else return true;
     }
 
-    //Crea una nueva tabla relativa a un objeto en la BD
+    /**
+     * Creates a new table relative to an object in the DDBB.
+     * @param string $table_name    Name of the new table to be created.
+     * @param array  $columns_array Array corresponding to properties of an object (field => value).
+     */
     public function createTable($table_name, $columns_array) {
         $sql = "CREATE TABLE IF NOT EXISTS ". $table_name. " (";
         $sql .= $this->castColumns($columns_array);
@@ -113,16 +147,17 @@ class MysqlAdapter extends BaseAdapter {
         $this->db_link->exec($sql);
     }
 
+    /**
+     * Returns an array describing a table structure.
+     * @param  string $table Table name.
+     * @return array  Describes the table structure.
+     */
     public function getTableDescription($table) {
         $sql = 'DESCRIBE '. $table;
         $this->db_link->query($sql);
         $table_description = $this->db_link->fetch();
-        //Este es el DBmanager exclusivo de MySQL.
-        //Lo siguiente solo se hace para no utilizar las claves de array
-        //que retorna la consulta de este DBMS. Transformamos en índices
-        //que se corresponden con las claves. En otros adaptadores habrá que
-        //formar los mismos arrays para pasarlos como parámetro a la clase
-        //Column.
+        // The following is only done to not use the array keys that the query returns.
+        // In other adapters will have to form the same array to pass them as a parameter to the Column class.
         $new_table_description = array();
         foreach($table_description as $column_array) {
             $new_column_array['field'] = $column_array['Field'];
@@ -138,6 +173,11 @@ class MysqlAdapter extends BaseAdapter {
         return $new_table_description;
     }
 
+    /**
+     * Find tables in a DDBB that matches the pattern.
+     * @param  regExp  $pattern Regular expression string to use.
+     * @return array Array of table names that matches the pattern. Or false if nothing.
+     */
     public function findTables($pattern) {
         $sql = "SHOW TABLES LIKE '". $pattern. "'";
         $this->db_link->query($sql);
@@ -147,7 +187,10 @@ class MysqlAdapter extends BaseAdapter {
         else return $result;
     }
 
-    //Crea una nueva tabla de alias en la BD
+    /**
+     * Creates a new alias table in the DDBB.
+     * @param string $referenced_table Table name of the table that will be referenced by the aliases.
+     */
     public function createAliasTable($referenced_table) {
         $sql = "CREATE TABLE IF NOT EXISTS ". $referenced_table. "_alias (";
         $sql .= " alias VARCHAR(40) NOT NULL PRIMARY KEY,";
@@ -157,12 +200,24 @@ class MysqlAdapter extends BaseAdapter {
         $this->db_link->exec($sql);
     }
 
+    /**
+     * Inserts an alias for an object in its corresponding aliases table.
+     * @param string $alias            The alias to set up.
+     * @param string $ormizer_id       Id of the object to be aliased.
+     * @param string $referenced_table Table name which the object belongs.
+     */
     public function insertAlias($alias, $ormizer_id, $referenced_table) {
         $alias_table = $referenced_table. '_alias';
         $sql = 'INSERT INTO '. $alias_table. ' VALUES (?,?)';
         $this->db_link->query($sql, [$alias,$ormizer_id]);
     }
 
+    /**
+     * Translates to SQL an array of object properties (property => value).
+     * @protected
+     * @param  array  $columns_array The properties (columns) array.
+     * @return string Corresponding SQL string.
+     */
     protected function castColumns($columns_array) {
         $sql = '';
         foreach($columns_array as $column) {

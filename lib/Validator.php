@@ -3,14 +3,9 @@
 namespace ORMizer;
 
 /**
- * Classe genèrica validar dades.
- *
- * @author Jose A. Martínez
- *
- * Se li passen mínima i màxima llargaria permesa de l'string i
- * els caracters que seran vàlids, a més de l'string de dades mateix.
+ * Generic class to validate data.
+ * We can set the max and min string length and the allowed characters.
  */
-
 class Validator {
 
     private $valid_chars;
@@ -18,11 +13,11 @@ class Validator {
     private $max_length;
 
     /**
-	 * Constructor de la classe.
+	 * Class constructor.
 	 *
-	 * @param int $min_length
-	 * @param int $max_length
-	 * @param string $valid_chars
+	 * @param int      $min_length
+	 * @param int      $max_length
+	 * @param string   $valid_chars
 	 */
     function __construct($min_length, $max_length, $valid_chars='alphanumeric') {
         $this->min_length = $min_length;
@@ -31,12 +26,10 @@ class Validator {
     }
 
     /**
-	 * Funció que realitza efectivament la comprovació.
-	 * Retorna verdader si l'string compleix totes les condicions
-	 * o fals en cas contrari.
-	 *
-	 * @return true or false
-	 */
+     * Effectively checks the string.
+     * @param  string  $data String to be validated.
+     * @return boolean True if is valid.
+     */
     public function validate($data) {
         //Comprovem que és una cadena
         if(!is_string($data))
@@ -53,6 +46,10 @@ class Validator {
         return true;
     }
 
+    /**
+     * Sets allowed chars to be used in the validation.
+     * @param string $valid_chars One of the preconfigured options or a custom set of characters.
+     */
     public function setChars($valid_chars) {
         switch($valid_chars) {
             case 'alphanumeric':
@@ -72,6 +69,11 @@ class Validator {
         }
     }
 
+    /**
+     * Sets the max and min allowed length to be used in the validation.
+     * @param [[Type]] $min [[Description]]
+     * @param [[Type]] $max [[Description]]
+     */
     public function setLength($min, $max) {
         $this->min_length = $min;
         $this->max_length = $max;

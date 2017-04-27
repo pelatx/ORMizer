@@ -4,7 +4,7 @@ namespace ORMizer;
 
 class Column {
 
-    //Tipos de PHP
+    // PHP types.
     const STRING	= 'string';
     const INTEGER	= 'int';
     const DECIMAL	= 'float';
@@ -13,7 +13,7 @@ class Column {
     const TIME		= 'time';
     const BLOB		= 'blob';
 
-    //Correspondencia de tipos php-relacional
+    // Type correspondence php-relational.
     private $type_mapping = array(
         'char'		=> self::STRING,
         'varchar'	=> self::STRING,
@@ -34,7 +34,7 @@ class Column {
         'dec'		=> self::DECIMAL,
         'blob'		=> self::BLOB);
 
-    //Propiedades del objeto que describen la columna
+    // Properties of a column.
     private $name;
     private $type;
     private $max_length;
@@ -43,6 +43,10 @@ class Column {
     private $default;
     private $extra;
 
+    /**
+     * Sets the column properties from given column description array.
+     * @param array [$column_description=array()] Column description array.
+     */
     function __construct($column_description=array()) {
         if(!empty($column_description)) {
             $this->name = $column_description['field'];
@@ -55,14 +59,28 @@ class Column {
         }
     }
 
+    /**
+     * Gets the value of a property.
+     * @param  string $property Property name.
+     * @return any The property value.
+     */
     function __get($property) {
         return $this->$property;
     }
 
+    /**
+     * Sets the value of a property.
+     * @param string $property Property name.
+     * @param any    $value    The property value.
+     */
     function __set($property, $value) {
         $this->$property = $value;
     }
 
+    /**
+     * Gets the PHP type of this column object.
+     * @return string The PHP corresponding type.
+     */
     public function getPhpType() {
         return $this->type_mapping[$this->type];
     }

@@ -4,6 +4,11 @@ namespace ORMizer;
 
 use \ReflectionObject;
 
+/**
+ * ORMizer core class.
+ * An object of this class is returned to replace a simple object passed to ORMizer.
+ * It clones the original object and adds all necessary ORMizer functionality.
+ **/
 class PersistentObject {
 
     private $ormizer_id;
@@ -16,6 +21,11 @@ class PersistentObject {
     private $db_columns = array();
     private $token_gen;
 
+    /**
+     * Sets the ORMized object initial properties.
+     * @param object &$object Object to be pesisted.
+     * @param string $alias   An alias for the transformed object.
+     */
     function __construct(&$object, $alias) {
         $this->object = $object;
         $this->reflected_object = new ReflectionObject($object);
@@ -36,8 +46,7 @@ class PersistentObject {
                 throw new \Exception('ORMizer\PersistentObject: wrong lentgh or bad characters in alias.');
             }
         }
-        //Creamos las columnas para poder setear tipos y lo que haga falta
-        //en la tabla de la BBDD.
+        // We create the columns to be able to set types and what is needed in the table of the DDBB.
         foreach($this->getAll() as $property=>$value) {
             $column = new Column();
             $column->name = $property;
@@ -63,6 +72,11 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Gets a property value of the initial object passed to ORMizer.
+     * @param  string $property Property name.
+     * @return any    Property value.
+     */
     function __get($property) {
         if($property === 'ormizer_id')
             return $this->ormizer_id;
@@ -75,6 +89,11 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Sets a property value of the initial object passed to ORMizer.
+     * @param string $property Property name.
+     * @param any    $value    New property value.
+     */
     function __set($property, $value) {
         if($property === 'ormizer_id') {
             if(strlen($value) <= $this->ormizer_id_length) {
@@ -93,6 +112,12 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Calls a method of the initial object passed to ORMizer.
+     * @param  string $method Method name.
+     * @param  array  $args   Arguments array passed to method.
+     * @return any    The return of the method executed.
+     */
     function __call($method, $args) {
         if($this->reflected_object->hasMethod($method) &&
            $this->reflected_object->getMethod($method)->isPublic()) {
@@ -102,11 +127,19 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Sets the properties of the original object (plus the ORMizer id)
+     * to be displayed in the debug information (var_dump, for example).
+     * @return array Associative array containing properties => values.
+     */
     function __debugInfo() {
         return $this->getAll();
     }
 
-    //Retorna array con todas las propiedades del objeto
+    /**
+     * Returns an array with all the properties of the original object plus the ORMizer id.
+     * @return array Associative array containing properties => values.
+     */
     public function getAll() {
         $return['ormizer_id'] = $this->ormizer_id;
         $props = $this->reflected_object->getProperties();
@@ -123,9 +156,11 @@ class PersistentObject {
         return $return;
     }
 
-    //Guarda en la BBDD los valores actuales de las propiedades.
-    //Comprueba antes la integridad modelo-tabla. Si se ha cambiado
-    //el modelo, guardará solo las propiedades existentes en la tabla.
+    /**
+     * Saves the current values of the original properties in the database.
+     * Checks model-table integrity first. If the model has been changed,
+     * it will save only the existing properties in the table.
+     */
     public function save() {
         $properties = $this->getAll();
         $this->db_manager->createTable($this->db_table_name, $this->db_columns);
@@ -141,7 +176,6 @@ class PersistentObject {
             }
         }
 
-        //Comprobamos si el objeto ya existe en la tabla
         if($this->isSaved()) {
             $this->db_manager->updateRow($this->db_table_name, $consistent_props);
         }else {
@@ -155,6 +189,10 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Checks if an object is already saved in the database.
+     * @return boolean True if it is saved.
+     */
     public function isSaved() {
         if(!$this->db_manager->existsTable($this->db_table_name))
             return false;
@@ -163,16 +201,29 @@ class PersistentObject {
         return true;
     }
 
+    /**
+     * Checks existence of a table in the database.
+     * @return boolean True if it exists.
+     */
     public function existsTable() {
         if($this->db_manager->existsTable($this->db_table_name))
             return true;
         return false;
     }
 
+    /**
+     * Creates a table reflecting the class model of the given object.
+     */
     public function createTable() {
         $this->db_manager->createTable($this->db_table_name, $this->db_columns);
     }
 
+    /**
+     * Loads property values from the database into the object,
+     * from the given ORMizer id.
+     * @param  string  $ormizer_id ORMizer id.
+     * @return boolean True if success.
+     */
     public function load($ormizer_id) {
         if($this->db_manager->existsTable($this->db_table_name)) {
             $row = $this->db_manager->getRow($this->db_table_name, 'ormizer_id', $ormizer_id);
@@ -186,10 +237,23 @@ class PersistentObject {
         return true;
     }
 
+    /**
+     * Deletes a row (an ORMized object) from the database.
+     */
     public function delete() {
         $this->db_manager->deleteRow($this->db_table_name, $this->ormizer_id);
     }
 
+    /**
+     * Sets how the PHP types of the object properties will be translated into
+     * database types. This only makes sense before the first time that an object
+     * of a particular model is saved, since after that the table will not be modified.
+     * @param  string  $property          Property name.
+     * @param  string  $type              Type you want in the database.
+     * @param  integer [$max_length=null] Length of database field.
+     * @param  integer [$decimals=null]   How many decimals in numeric fields.
+     * @return object  This object. To make posible chains of several method calls.
+     */
     public function setCasting($property, $type, $max_length=null, $decimals=null) {
         if(!$this->db_manager->existsTable($this->db_table_name)) {
 
@@ -227,17 +291,10 @@ class PersistentObject {
         }
         return $this;
     }
-    /*
-	public function excludeProperties($properties=array()) {
-		if(!empty($properties)) {
-			foreach($properties as $property) {
-				if($this->reflected_object->hasProperty($property))
-					array_push($this->excluded_properties, $property);
-			}
-		}
-	}
-*/
 
+    /**
+     * Initialize an ORMizer id for the transformed object.
+     */
     private function ormizerIdConfig() {
         if(!$this->db_manager->existsTable($this->db_table_name)) {
             $this->ormizer_id_length = 16;
@@ -254,6 +311,11 @@ class PersistentObject {
         }
     }
 
+    /**
+     * Returns an array with all saved objects of the object class.
+     * Properly reestablishes the DDBB types to PHP types.
+     * @return array Array of saved objects. Or false if no results.
+     */
     public function getSavedInstances() {
         if(!$this->db_manager->existsTable($this->db_table_name))
             return false;
@@ -262,6 +324,12 @@ class PersistentObject {
         return $rows;
     }
 
+    /**
+     * Makes a proper reverse type conversion of a row from the database.
+     * @param  array $row               Row associative array.
+     * @param  array $table_description Table description array (from the `getTableDescription` method).
+     * @return array Row new array.
+     */
     private function castFetchedRow($row, $table_description) {
         for($i = 0; $i < count($row); $i++) {
             $field = $table_description[$i]['field'];
@@ -293,6 +361,11 @@ class PersistentObject {
         return $row;
     }
 
+    /**
+     * Makes a proper reverse type conversion of a set of rows from the database.
+     * @param  array $rows Bidimensional array of rows.
+     * @return array Bidimensinal new array of rows.
+     */
     private function castFetchedRows($rows) {
         $table_description = $this->db_manager->getTableDescription($this->db_table_name);
         // Test if we got a single row or an array of rows

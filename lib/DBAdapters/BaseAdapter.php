@@ -16,9 +16,9 @@ abstract class BaseAdapter {
     protected static $instance;
 
     /**
-	 * [[Description]]
-	 * @private
-	 */
+     * BaseAdapter constructor.
+     * @protected
+     */
     protected function __construct() {
         $this->db_link = new PDOWrapper (
             Config::DBMS,
@@ -31,9 +31,9 @@ abstract class BaseAdapter {
     }
 
     /**
-	 * Creates an unique instance of the child database adapter class.
-	 * @return Adapter Object [the child database adapter object]
-	 */
+     * Creates an unique instance of the child database adapter class.
+     * @return object Child database adapter object.
+     */
     public static function instance() {
         if (!isset(self::$instance)) {
             $class = static::class;
@@ -42,26 +42,22 @@ abstract class BaseAdapter {
         return self::$instance;
     }
 
+    /**
+     * Disable cloning the instance.
+     */
     public function __clone(){}
 
-    //
-    //en UTF8
-
-
     /**
-	 * Metodo que codifica arrays a json, previamente
-	 * asegurandose que todo está en UTF8.
-	 * @public
-	 * @param  array  [$array=array()] Array para codificar a JSon.
-	 * @return string El array codificado.
-	 */
+     * Encode an array recursively into a json string.
+     * @param  array  $array=array() Array to be encoded.
+     * @return string Json string of the array.
+     */
     public function _json_encode($array=array()) {
         array_walk_recursive($array, function(&$val) {
             $val = utf8_encode($val);
         });
         return json_encode($array);
     }
-
 
     abstract public function insertRow($table, $props_array);
 

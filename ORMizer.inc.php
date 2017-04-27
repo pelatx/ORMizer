@@ -2,7 +2,7 @@
 
 /**
  * Automatic classloader for ORMizer.
- * @author pelatx
+ * @param string $class Class to find.
  */
 function ORMizer_autoload($class) {
     $name_array = explode('\\', $class);
