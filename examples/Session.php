@@ -68,7 +68,7 @@ class Session {
                 ->setCasting('encryption_key', 'char', 128)
                 ->setCasting('access_time', 'datetime')
                 ->setCasting('data', 'text');
-            $this->ormized_session->create_table();
+            $this->ormized_session->createTable();
         }
         return true;
     }
