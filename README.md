@@ -17,26 +17,49 @@ There are many excellent choices out there. Professional and well tested framewo
 - You can preload all objects with aliases and make them available in global scope.
 
 ## Usage
-Making an object persistent:
+#### 1 - Edit `Config.php` with your database settings:
 ```
-$original = new Original("arg1", "arg2);
+class Config {
+
+    //Database options
+    const DBMS = 'mysql'; // Must be the PDO string for the Database Management System
+    const DBMS_HOST = 'localhost';
+    const DBMS_PORT = ''; // Leave empty for default port
+    const APP_DB = 'ormzr_tests';
+    const APP_DB_USER = 'ormzr_tests_user';
+    const APP_DB_USER_PASS = 'ormzr_tests_user_pass';
+}
+```
+#### 2 - Include the ORMizer autoloader:
+```
+include("ORMizer.inc.php");
+```
+#### 3 - Use the ORMizer class and namespace in your script:
+```
+use ORMizer\ORMizer;
+```
+#### Now, you are ready to:
+
+Make an object persistent:
+```
+$original = new Original("arg1", "arg2");
 $persistent = ORMizer::persist($original);
 ```
-Saving into database:
+Save it into database:
 ```
 $persistent->save();
 ```
-Loading from database:
+Load from database:
 ```
 $persitent->load($ormizer_id);
 ```
-Deleting from the database:
+Delete from the database:
 ```
 $persistent->delete();
 ```
-Retrieving all objects of same class saved in the database:
+Retrieve all objects of same class saved in the database:
 ```
 $all = $persistent->getSavedInstances();
 ```
 
-See the examples included.
+More in the [examples](https://github.com/pelatx/ORMizer/tree/master/examples) included.
